@@ -6,13 +6,10 @@ export default class OnboardingNew extends LightningElement {
     isLoading = false;
     errorMessage = null;
 
-    // Central DTO matching OnboardingDTO
+    // Central DTO
     dto = {
-        // Tracking
-        currentStep: 1,
-
-        // STEP 1 – ACCOUNT / DRIVER
-        clientType: null, // PERSON | BUSINESS
+        currentStep: null, // Will be set by flow
+        clientType: null,
         accId: null,
         firstName: null,
         lastName: null,
@@ -21,19 +18,13 @@ export default class OnboardingNew extends LightningElement {
         city: null,
         nationalId: null,
         driverLicense: null,
-
-        // Business account
         businessName: null,
         registerOfCommerce: null,
         brokerAccountId: null,
-
-        // Contact (driver when not owner)
         contactId: null,
         driverFirstName: null,
         driverLastName: null,
         categoryLicense: null,
-
-        // STEP 2 – VEHICLE
         vehicleId: null,
         vehiclePlate: null,
         vehicleIsNew: false,
@@ -49,23 +40,58 @@ export default class OnboardingNew extends LightningElement {
         vehicleFuelType: null,
         vehicleTrailer: false,
         vehicleValue: null,
-
-        // STEP 3 – POLICY / CONTRACT
         policyId: null,
         contractId: null,
         premium: null,
-
-        // STEP 4 – COVERAGES
         selectedCoverageIds: []
     };
 
-    // ---------- STEP HELPERS ----------
-    get isStep1() { return this.dto.currentStep === 1; }
-    get isStep2() { return this.dto.currentStep === 2; }
-    get isStep3() { return this.dto.currentStep === 3; }
-    get isStep4() { return this.dto.currentStep === 4; }
-    get isStep5() { return this.dto.currentStep === 5; }
+    // Current step in the flow
+    currentStepName = 'ACCOUNT';
 
+    // ---------- FLOW DEFINITION ----------
+    // Define the flow for each client type
+    FLOWS = {
+        PERSON: ['ACCOUNT', 'VEHICLE', 'REVIEW', 'COVERAGES', 'FINALIZE'],
+        BUSINESS: ['ACCOUNT', 'DRIVER', 'VEHICLE', 'REVIEW', 'COVERAGES', 'FINALIZE']
+    };
+
+    // Map step names to Apex step numbers
+    STEP_TO_APEX_NUMBER = {
+        ACCOUNT: 1,
+        DRIVER: 2,
+        VEHICLE: 2, // For PERSON, or 3 for BUSINESS (handled dynamically)
+        REVIEW: 3,
+        COVERAGES: 4,
+        FINALIZE: 5
+    };
+
+    // ---------- STEP HELPERS ----------
+    get currentFlow() {
+        return this.dto.clientType ? this.FLOWS[this.dto.clientType] : this.FLOWS.PERSON;
+    }
+
+    get currentStepIndex() {
+        return this.currentFlow.indexOf(this.currentStepName);
+    }
+
+    get isFirstStep() {
+        return this.currentStepIndex === 0;
+    }
+
+    get isLastStep() {
+        return this.currentStepIndex === this.currentFlow.length - 1;
+    }
+
+    // Step visibility getters
+    get isAccountStep() { return this.currentStepName === 'ACCOUNT'; }
+    get isDriverStep() { return this.currentStepName === 'DRIVER'; }
+    get isVehicleStep() { return this.currentStepName === 'VEHICLE'; }
+    get isReviewStep() { return this.currentStepName === 'REVIEW'; }
+    get isCoveragesStep() { return this.currentStepName === 'COVERAGES'; }
+    get isFinalizeStep() { return this.currentStepName === 'FINALIZE'; }
+
+    // Client type helpers
     get isBusiness() { return this.dto.clientType === 'BUSINESS'; }
     get isPerson() { return this.dto.clientType === 'PERSON'; }
 
@@ -74,39 +100,66 @@ export default class OnboardingNew extends LightningElement {
         { label: 'Business', value: 'BUSINESS' }
     ];
 
-    // Coverage options via LDS-backed Apex (cacheable=true)
+    // Coverage options
     coverageOptions = [];
     @wire(getCoverages)
     wiredCoverages({ data, error }) {
         if (data) {
             this.coverageOptions = data.map(c => ({ label: c.Name, value: c.Id }));
         } else if (error) {
-            // keep UI resilient; show later if needed
-            // eslint-disable-next-line no-console
             console.error('Coverages load error', error);
         }
     }
 
+    // ---------- NAVIGATION ----------
+    goToNextStep() {
+        if (this.isLastStep) return;
+        
+        const nextIndex = this.currentStepIndex + 1;
+        this.currentStepName = this.currentFlow[nextIndex];
+        
+        console.log('[onboardingNew] Navigated to step:', this.currentStepName);
+    }
+
+    goToPreviousStep() {
+        if (this.isFirstStep) return;
+        
+        const prevIndex = this.currentStepIndex - 1;
+        this.currentStepName = this.currentFlow[prevIndex];
+        
+        console.log('[onboardingNew] Navigated back to step:', this.currentStepName);
+    }
+
     // ---------- INPUT HANDLERS ----------
     handleClientTypeChange(event) {
-        const raw = event?.detail?.value;
-        const val = raw === undefined || raw === null ? null : String(raw);
-        // eslint-disable-next-line no-console
-        console.log('[onboardingNew] clientType change raw:', raw, 'coerced:', val);
+        const val = event?.detail?.value;
+        console.log('[onboardingNew] clientType change:', val);
+        
         this.dto = { ...this.dto, clientType: val };
-        // clear any prior error when user selects a value
+        
+        // Reset to first step when client type changes
+        this.currentStepName = 'ACCOUNT';
+        
         if (this.errorMessage) {
             this.errorMessage = null;
         }
-        // eslint-disable-next-line no-console
-        console.log('[onboardingNew] dto after clientType change:', JSON.stringify(this.dto));
     }
 
     handleInputChange(event) {
         const name = event.target.name;
-        const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
+        let value;
+        
+        if (event.target.type === 'checkbox') {
+            value = event.target.checked;
+        } else if (event.target.type === 'number') {
+            value = event.target.value === '' ? null : event.target.value;
+        } else if (event.target.type === 'date') {
+            value = event.target.value === '' ? null : event.target.value;
+        } else {
+            value = event.target.value;
+        }
+        
         this.dto = { ...this.dto, [name]: value };
-        // eslint-disable-next-line no-console
         console.log('[onboardingNew] input change:', name, '=>', value);
     }
 
@@ -114,45 +167,54 @@ export default class OnboardingNew extends LightningElement {
         this.dto = { ...this.dto, selectedCoverageIds: event.detail.value || [] };
     }
 
-    // ---------- SAFE PAYLOAD BUILDER ----------
+    // ---------- APEX STEP NUMBER MAPPING ----------
+    getApexStepNumber() {
+        // Map named step to Apex step number based on client type
+        if (this.currentStepName === 'ACCOUNT') return 1;
+        if (this.currentStepName === 'DRIVER') return 2;
+        if (this.currentStepName === 'VEHICLE') {
+            return this.dto.clientType === 'PERSON' ? 2 : 3;
+        }
+        if (this.currentStepName === 'REVIEW') {
+            return this.dto.clientType === 'PERSON' ? 3 : 4;
+        }
+        if (this.currentStepName === 'COVERAGES') {
+            return this.dto.clientType === 'PERSON' ? 4 : 5;
+        }
+        if (this.currentStepName === 'FINALIZE') {
+            return this.dto.clientType === 'PERSON' ? 5 : 6;
+        }
+        return 1;
+    }
+
+    // ---------- PAYLOAD BUILDER ----------
     buildPayload() {
-        // Build payload and clean it for Apex deserialization
         const payload = {};
         
-        // Helper function to safely add a value
         const addField = (key, value, type) => {
-            if (value === undefined) {
-                return; // Skip undefined
-            }
+            if (value === undefined) return;
             
             if (type === 'boolean') {
-                // For booleans: only add if explicitly true/false, skip null
                 if (value === true || value === false) {
                     payload[key] = value;
                 }
-                // If null/undefined, don't include the field at all
             } else if (type === 'number') {
-                // For numbers: convert empty string to null, skip if null
-                if (value === '' || value === null || value === undefined) {
-                    // Don't include the field
-                } else {
+                if (value !== '' && value !== null && value !== undefined) {
                     payload[key] = value;
                 }
             } else if (type === 'date') {
-                // For dates: skip if empty/null
                 if (value && value !== '') {
                     payload[key] = value;
                 }
             } else {
-                // For strings and IDs: include even if null (Apex handles this)
                 payload[key] = value;
             }
         };
         
-        // Tracking
-        addField('currentStep', Number(this.dto.currentStep) || 1, 'number');
+        // Add the Apex step number
+        addField('currentStep', this.getApexStepNumber(), 'number');
         
-        // STEP 1 - ACCOUNT / DRIVER
+        // ACCOUNT / DRIVER
         addField('clientType', this.dto.clientType, 'string');
         addField('accId', this.dto.accId, 'string');
         addField('firstName', this.dto.firstName, 'string');
@@ -170,7 +232,7 @@ export default class OnboardingNew extends LightningElement {
         addField('driverLastName', this.dto.driverLastName, 'string');
         addField('categoryLicense', this.dto.categoryLicense, 'string');
         
-        // STEP 2 - VEHICLE
+        // VEHICLE
         addField('vehicleId', this.dto.vehicleId, 'string');
         addField('vehiclePlate', this.dto.vehiclePlate, 'string');
         addField('vehicleIsNew', this.dto.vehicleIsNew, 'boolean');
@@ -187,81 +249,81 @@ export default class OnboardingNew extends LightningElement {
         addField('vehicleTrailer', this.dto.vehicleTrailer, 'boolean');
         addField('vehicleValue', this.dto.vehicleValue, 'number');
         
-        // STEP 3 - POLICY / CONTRACT
+        // POLICY / CONTRACT
         addField('policyId', this.dto.policyId, 'string');
         addField('contractId', this.dto.contractId, 'string');
         addField('premium', this.dto.premium, 'number');
         
-        // STEP 4 - COVERAGES
+        // COVERAGES
         addField('selectedCoverageIds', this.dto.selectedCoverageIds, 'array');
 
-        // eslint-disable-next-line no-console
         console.log('[onboardingNew] buildPayload returning:', JSON.stringify(payload));
         return payload;
     }
 
-    // ---------- NAVIGATION / SAVE ----------
+    // ---------- VALIDATION ----------
+    validateCurrentStep() {
+        const step = this.currentStepName;
+        
+        if (step === 'ACCOUNT') {
+            if (!this.dto.clientType) {
+                this.errorMessage = 'Select a Client Type to proceed.';
+                return false;
+            }
+            
+            if (this.dto.clientType === 'PERSON' && (!this.dto.firstName || !this.dto.lastName)) {
+                this.errorMessage = 'First Name and Last Name are required for Person accounts.';
+                return false;
+            }
+            
+            if (this.dto.clientType === 'BUSINESS' && !this.dto.businessName) {
+                this.errorMessage = 'Business Name is required for Business accounts.';
+                return false;
+            }
+        }
+        
+        if (step === 'DRIVER') {
+            if (!this.dto.driverFirstName || !this.dto.driverLastName) {
+                this.errorMessage = 'Driver First Name and Last Name are required.';
+                return false;
+            }
+        }
+        
+        // Add more validations as needed
+        
+        return true;
+    }
+
+    // ---------- SAVE & NAVIGATE ----------
     async handleNext() {
         this.isLoading = true;
         this.errorMessage = null;
 
         try {
-            // Strong logging: snapshot DTO before any guards
-            // eslint-disable-next-line no-console
-            console.log('[onboardingNew] BEFORE GUARDS dto:', JSON.stringify(this.dto));
-
-            // Front-end guard: Step 1 requires client type
-            const step = Number(this.dto.currentStep) || 1;
-            if (step === 1 && !this.dto.clientType) {
-                this.errorMessage = 'Select a Client Type to proceed.';
-                // eslint-disable-next-line no-console
-                console.warn('[onboardingNew] blocked: missing clientType at step 1');
+            // Validate current step
+            if (!this.validateCurrentStep()) {
                 this.isLoading = false;
                 return;
             }
 
-            if (!this.dto.currentStep) {
-                this.dto = { ...this.dto, currentStep: 1 };
-                // eslint-disable-next-line no-console
-                console.log('[onboardingNew] normalized step to 1');
-            }
-
-            // Extra check: if clientType somehow falsy, log and continue (server will early-return at step 1)
-            if (!this.dto.clientType) {
-                // eslint-disable-next-line no-console
-                console.warn('[onboardingNew] WARNING: clientType is falsy before payload build');
-            }
-
-            // Step 5 finalizes; do not auto-increment beyond 5
             const payload = this.buildPayload();
-
-            // Validate payload keys and types explicitly
-            // eslint-disable-next-line no-console
-            console.log('[onboardingNew] PAYLOAD KEYS:', Object.keys(payload));
-            // eslint-disable-next-line no-console
-            console.log('[onboardingNew] PAYLOAD.clientType typeof=', typeof payload.clientType, 'value=', payload.clientType);
-            // eslint-disable-next-line no-console
-            console.log('[onboardingNew] CALL saveStep');
+            console.log('[onboardingNew] CALL saveStep with payload:', JSON.stringify(payload));
 
             const result = await saveStep({ dtoJson: JSON.stringify(payload) });
-
-            // eslint-disable-next-line no-console
             console.log('[onboardingNew] RESULT:', JSON.stringify(result));
 
-            // Merge Apex-returned DTO; increment step unless we are already at 5
-            const nextStep = Math.min((this.dto.currentStep || 1) + 1, 5);
-            this.dto = { ...this.dto, ...result, currentStep: nextStep };
+            // Merge Apex-returned DTO
+            this.dto = { ...this.dto, ...result };
 
-            // eslint-disable-next-line no-console
+            // Navigate to next step in flow
+            this.goToNextStep();
+
             console.log('[onboardingNew] AFTER MERGE dto:', JSON.stringify(this.dto));
         } catch (err) {
-            // eslint-disable-next-line no-console
             console.error('[onboardingNew] error in handleNext:', err);
             
-            // Extract detailed error information
             let errorMsg = 'Unexpected error';
             if (err.body) {
-                // eslint-disable-next-line no-console
                 console.error('[onboardingNew] err.body:', JSON.stringify(err.body));
                 
                 if (err.body.pageErrors && err.body.pageErrors.length > 0) {
@@ -276,19 +338,13 @@ export default class OnboardingNew extends LightningElement {
             }
             
             this.errorMessage = errorMsg;
-            // eslint-disable-next-line no-console
             console.error('[onboardingNew] Full error message:', errorMsg);
-        
         } finally {
-            // eslint-disable-next-line no-console
-            console.log('[onboardingNew] handleNext() finally; isLoading=false');
             this.isLoading = false;
         }
     }
 
     handleBack() {
-        if ((this.dto.currentStep || 1) > 1) {
-            this.dto = { ...this.dto, currentStep: this.dto.currentStep - 1 };
-        }
+        this.goToPreviousStep();
     }
 }

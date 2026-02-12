@@ -2,6 +2,7 @@ public with sharing class OnboardingController {
 
     @AuraEnabled
     public static OnboardingDTO saveStep(String dtoJson) {
+        
         System.debug('=== RAW JSON STRING ===');
         System.debug('dtoJson: ' + dtoJson);
         System.debug('======================');
@@ -27,9 +28,9 @@ public with sharing class OnboardingController {
 
         switch on dto.currentStep {
 
-            // STEP 1 – CLIENT TYPE + ACCOUNT
+            // STEP 1 – CLIENT TYPE + ACCOUNT (Both PERSON and BUSINESS)
             when 1 {
-                system.debug('step 1');
+                system.debug('step 1 - Account');
                 if (String.isBlank(dto.clientType)) {
                     system.debug('Client type is null');
                     return dto;
@@ -49,35 +50,68 @@ public with sharing class OnboardingController {
                 }
             }
 
-            // STEP 2
+            // STEP 2 – VEHICLE (PERSON) or DRIVER (BUSINESS)
             when 2 {
                 system.debug('step 2');
                 if (dto.clientType == 'BUSINESS') {
+                    // For business: Step 2 is Driver/Contact
                     PolicyLifecycleService.saveContact(dto);
                     System.debug('Saved contact with ID: ' + dto.contactId);
                 } else {
+                    // For person: Step 2 is Vehicle
                     PolicyLifecycleService.saveVehicle(dto);
                     System.debug('Saved vehicle with ID: ' + dto.vehicleId);
                 }
             }
 
-            // STEP 3
+            // STEP 3 – REVIEW (PERSON) or VEHICLE (BUSINESS)
             when 3 {
                 system.debug('step 3');
-                PolicyLifecycleService.saveVehicle(dto);
-                system.debug('Saved vehicle with ID: ' + dto.vehicleId);
+                if (dto.clientType == 'BUSINESS') {
+                    // For business: Step 3 is Vehicle
+                    PolicyLifecycleService.saveVehicle(dto);
+                    system.debug('Saved vehicle with ID: ' + dto.vehicleId);
+                } else {
+                    // For person: Step 3 is Review (no processing needed)
+                    system.debug('Review step - no processing');
+                }
             }
 
-            // STEP 4 – COVERAGES (NO DML)
+            // STEP 4 – COVERAGES (PERSON) or REVIEW (BUSINESS)
             when 4 {
                 system.debug('step 4');
-                // selectedCoverageIds already populated
+                if (dto.clientType == 'BUSINESS') {
+                    // For business: Step 4 is Review (no processing needed)
+                    system.debug('Review step - no processing');
+                } else {
+                    // For person: Step 4 is Coverages (no DML, just selection)
+                    system.debug('Coverages step - selectedCoverageIds already populated');
+                }
             }
 
-            // STEP 5 – FINALIZE
+            // STEP 5 – FINALIZE (PERSON) or COVERAGES (BUSINESS)
             when 5 {
                 system.debug('step 5');
-                PolicyLifecycleService.finalizeOnboarding(dto);
+                if (dto.clientType == 'BUSINESS') {
+                    // For business: Step 5 is Coverages (no DML, just selection)
+                    system.debug('Coverages step - selectedCoverageIds already populated');
+                } else {
+                    // For person: Step 5 is Finalize
+                    PolicyLifecycleService.finalizeOnboarding(dto);
+                    system.debug('Finalized onboarding for person');
+                }
+            }
+
+            // STEP 6 – FINALIZE (BUSINESS only)
+            when 6 {
+                system.debug('step 6');
+                if (dto.clientType == 'BUSINESS') {
+                    // For business: Step 6 is Finalize
+                    PolicyLifecycleService.finalizeOnboarding(dto);
+                    system.debug('Finalized onboarding for business');
+                } else {
+                    throw new AuraHandledException('Step 6 should not be reached for PERSON flow');
+                }
             }
 
             when else {
