@@ -1,0 +1,60 @@
+public class OnboardingDTO {
+
+    // =============================
+    // STEP 1 – ACCOUNT / DRIVER
+    // =============================
+    @AuraEnabled public String clientType; // PERSON | BUSINESS
+    @AuraEnabled public Id accId;
+    @AuraEnabled public String firstName;
+    @AuraEnabled public String lastName;
+    @AuraEnabled public Date birthDate;
+    @AuraEnabled public String phoneNumber;
+    @AuraEnabled public String city;
+    @AuraEnabled public String nationalId;
+    @AuraEnabled public String driverLicense;
+
+    // Business account
+    @AuraEnabled public String businessName;
+    @AuraEnabled public String registerOfCommerce;
+    @AuraEnabled public Id brokerAccountId;
+
+    // Contact (driver when not owner)
+    @AuraEnabled public Id contactId;
+    @AuraEnabled public String driverFirstName;
+    @AuraEnabled public String driverLastName;
+    @AuraEnabled public String categoryLicense;
+
+    // =============================
+    // STEP 2 – VEHICLE
+    // =============================
+    @AuraEnabled public Id vehicleId;
+    @AuraEnabled public String vehiclePlate;
+    @AuraEnabled public Boolean vehicleIsNew;
+    @AuraEnabled public Date vehicleStartDateOfCirculation;
+    @AuraEnabled public String vehicleBodyType;
+    @AuraEnabled public Integer vehicleNumberOfPassengers;
+    @AuraEnabled public String vehicleBrand;
+    @AuraEnabled public Integer vehicleCylinder;
+    @AuraEnabled public Integer vehicleFiscalHorsepower;
+    @AuraEnabled public String vehicleUsage;
+    @AuraEnabled public String vehicleMake;
+    @AuraEnabled public String vehicleModel;
+    @AuraEnabled public String vehicleFuelType;
+    @AuraEnabled public Boolean vehicleTrailer;
+    @AuraEnabled public Decimal vehicleValue;
+
+    // =============================
+    // STEP 3 – POLICY / CONTRACT
+    // =============================
+    @AuraEnabled public Id policyId;
+    @AuraEnabled public Id contractId;
+    @AuraEnabled public Decimal premium;
+
+    // =============================
+    // STEP 4 – COVERAGES
+    // =============================
+    @AuraEnabled public List<Id> selectedCoverageIds;
+
+    // Optional: tracking
+    @AuraEnabled public Integer currentStep;
+}

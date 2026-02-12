@@ -1,0 +1,168 @@
+<template>
+    <lightning-card title="Insurance Onboarding">
+        <!-- STEP 1 – ACCOUNT / DRIVER -->
+        <template if:true={isStep1}>
+            <div class="slds-p-around_medium slds-grid slds-wrap slds-gutters">
+                <div class="slds-col slds-size_1-of-1">
+                    <lightning-radio-group
+                        label="Client Type"
+                        options={clientTypeOptions}
+                        value={dto.clientType}
+                        required
+                        name="clientType"
+                        type="radio"
+                        onchange={handleClientTypeChange}>
+                    </lightning-radio-group>
+                </div>
+
+                <!-- Person -->
+                <template if:true={isPerson}>
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-input name="firstName" label="First Name" value={dto.firstName} onchange={handleInputChange}></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-input name="lastName" label="Last Name" value={dto.lastName} onchange={handleInputChange}></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-input type="date" name="birthDate" label="Birth Date" value={dto.birthDate} onchange={handleInputChange}></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-input name="driverLicense" label="Driver License" value={dto.driverLicense} onchange={handleInputChange}></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-input name="nationalId" label="National ID" value={dto.nationalId} onchange={handleInputChange}></lightning-input>
+                    </div>
+                </template>
+
+                <!-- Business -->
+                <template if:true={isBusiness}>
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-input name="businessName" label="Business Name" value={dto.businessName} onchange={handleInputChange}></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-input name="registerOfCommerce" label="Register of Commerce" value={dto.registerOfCommerce} onchange={handleInputChange}></lightning-input>
+                    </div>
+                </template>
+
+                <!-- Common contact fields -->
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input name="phoneNumber" label="Phone" value={dto.phoneNumber} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input name="city" label="City" value={dto.city} onchange={handleInputChange}></lightning-input>
+                </div>
+
+                <div class="slds-col slds-size_1-of-1 slds-m-top_medium">
+                    <lightning-button variant="neutral" label="Back" onclick={handleBack} class="slds-m-right_small"></lightning-button>
+                    <lightning-button variant="brand" label="Next" onclick={handleNext} disabled={isNextDisabled}></lightning-button>
+                </div>
+            </div>
+        </template>
+
+        <!-- STEP 2 – VEHICLE -->
+        <template if:true={isStep2}>
+            <div class="slds-p-around_medium slds-grid slds-wrap slds-gutters">
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input name="vehiclePlate" label="Vehicle Plate" value={dto.vehiclePlate} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input type="checkbox" name="vehicleIsNew" label="Is New?" checked={dto.vehicleIsNew} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input type="date" name="vehicleStartDateOfCirculation" label="Start Date of Circulation" value={dto.vehicleStartDateOfCirculation} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input name="vehicleBodyType" label="Body Type" value={dto.vehicleBodyType} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input type="number" name="vehicleNumberOfPassengers" label="Number of Passengers" value={dto.vehicleNumberOfPassengers} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input name="vehicleBrand" label="Brand" value={dto.vehicleBrand} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input type="number" name="vehicleCylinder" label="Cylinder" value={dto.vehicleCylinder} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input type="number" name="vehicleFiscalHorsepower" label="Fiscal Horsepower" value={dto.vehicleFiscalHorsepower} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input name="vehicleUsage" label="Usage" value={dto.vehicleUsage} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input name="vehicleMake" label="Make" value={dto.vehicleMake} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input name="vehicleModel" label="Model" value={dto.vehicleModel} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input name="vehicleFuelType" label="Fuel Type" value={dto.vehicleFuelType} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input type="checkbox" name="vehicleTrailer" label="Has Trailer?" checked={dto.vehicleTrailer} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input type="number" name="vehicleValue" label="Estimated Value" value={dto.vehicleValue} onchange={handleInputChange}></lightning-input>
+                </div>
+
+                <div class="slds-col slds-size_1-of-1 slds-m-top_medium">
+                    <lightning-button variant="neutral" label="Back" onclick={handleBack} class="slds-m-right_small"></lightning-button>
+                    <lightning-button variant="brand" label="Next" onclick={handleNext}></lightning-button>
+                </div>
+            </div>
+        </template>
+
+        <!-- STEP 3 – POLICY / CONTRACT (placeholder if needed) -->
+        <template if:true={isStep3}>
+            <div class="slds-p-around_medium">
+                <p class="slds-text-heading_small">Review and proceed</p>
+                <p>Account: {dto.accId}</p>
+                <p>Vehicle: {dto.vehicleId}</p>
+                <div class="slds-m-top_medium">
+                    <lightning-button variant="neutral" label="Back" onclick={handleBack} class="slds-m-right_small"></lightning-button>
+                    <lightning-button variant="brand" label="Next" onclick={handleNext}></lightning-button>
+                </div>
+            </div>
+        </template>
+
+        <!-- STEP 4 – COVERAGES -->
+        <template if:true={isStep4}>
+            <div class="slds-p-around_medium">
+                <lightning-dual-listbox
+                    name="coverages"
+                    label="Select Coverages"
+                    source-label="Available"
+                    selected-label="Selected"
+                    field-level-help="Choose applicable coverages"
+                    options={coverageOptions}
+                    value={dto.selectedCoverageIds}
+                    onchange={handleCoveragesChange}>
+                </lightning-dual-listbox>
+
+                <div class="slds-m-top_medium">
+                    <lightning-button variant="neutral" label="Back" onclick={handleBack} class="slds-m-right_small"></lightning-button>
+                    <lightning-button variant="brand" label="Next" onclick={handleNext}></lightning-button>
+                </div>
+            </div>
+        </template>
+
+        <!-- STEP 5 – FINALIZE -->
+        <template if:true={isStep5}>
+            <div class="slds-p-around_medium">
+                <p class="slds-text-heading_small">Finalize Onboarding</p>
+                <p class="slds-m-vertical_small">Apex will create/update Policy, Contract and Contract Coverages.</p>
+                <div class="slds-m-top_medium">
+                    <lightning-button variant="neutral" label="Back" onclick={handleBack} class="slds-m-right_small"></lightning-button>
+                    <lightning-button variant="brand" label="Save & Finish" onclick={handleNext}></lightning-button>
+                </div>
+            </div>
+        </template>
+
+        <!-- ERROR -->
+        <template if:true={errorMessage}>
+            <div class="slds-text-color_error slds-p-around_small">
+                {errorMessage}
+            </div>
+        </template>
+    </lightning-card>
+</template>
