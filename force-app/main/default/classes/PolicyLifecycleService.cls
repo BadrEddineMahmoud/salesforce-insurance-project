@@ -58,6 +58,7 @@ public with sharing class PolicyLifecycleService {
     // insert update person account
     public static void savePersonAccount(OnboardingDTO dto) {
         
+        Id personRecordTypeId = getRt('Person Account');
         
         // Upsert PERSON ACCOUNT (Account fields only)
         Account acc = new Account(
@@ -65,6 +66,7 @@ public with sharing class PolicyLifecycleService {
             FirstName = dto.firstName,
             LastName  = dto.lastName,
             PersonBirthdate = dto.birthDate,
+            PersonEmail = dto.email,
             Phone = dto.phoneNumber,
             Status__c = 'Draft'
         );
@@ -125,6 +127,7 @@ public with sharing class PolicyLifecycleService {
             LastName  = dto.driverLastName,
             Identity_Card__c = dto.nationalId,
             Phone = dto.phoneNumber,
+            Email = dto.email,
             Driver_License__c = dto.driverLicense,
             Category_License__c = dto.categoryLicense,
             Birthdate = dto.birthDate,

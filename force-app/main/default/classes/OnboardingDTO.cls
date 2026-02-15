@@ -12,6 +12,7 @@ public class OnboardingDTO {
     @AuraEnabled public String city;
     @AuraEnabled public String nationalId;
     @AuraEnabled public String driverLicense;
+    @AuraEnabled public String email;
 
     // Business account
     @AuraEnabled public String businessName;
