@@ -102,6 +102,25 @@ export default class OnboardingNew extends LightningElement {
         { label: 'Business', value: 'BUSINESS' }
     ];
 
+    // Add these after your existing getters (around line 110)
+
+    // Formatted values for review step
+    get vehicleIsNewLabel() {
+        return this.dto.vehicleIsNew ? 'Yes' : 'No';
+    }
+
+    get vehicleTrailerLabel() {
+        return this.dto.vehicleTrailer ? 'Yes' : 'No';
+    }
+
+    get vehicleValueFormatted() {
+        if (!this.dto.vehicleValue) return '-';
+        return new Intl.NumberFormat('en-US', { 
+            style: 'currency', 
+            currency: 'MAD' 
+        }).format(this.dto.vehicleValue);
+    }
+
     // Coverage options
     coverageOptions = [];
     @wire(getCoverages)
@@ -351,4 +370,6 @@ export default class OnboardingNew extends LightningElement {
     handleBack() {
         this.goToPreviousStep();
     }
+
+    
 }

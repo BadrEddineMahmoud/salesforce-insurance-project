@@ -30,6 +30,7 @@ public with sharing class PolicyLifecycleService {
                 recordsToInsert.add(new Contract_Coverage__c(
                     Inssurance_Contract__c = dto.contractId,
                     Coverage_Definition__c = coverage,
+                    Premium_ht__c = dto.coveragePremiums.get(coverage),
                     Status__c = 'Draft'
                 ));
             }
@@ -39,13 +40,6 @@ public with sharing class PolicyLifecycleService {
             throw new AuraHandledException(e.getMessage());
         }
     }
-    /*
-    public static Decimal calculatePremium(List<Id> coverages) {
-        Decimal base = 1000;
-        if (coverages != null) base *= coverages.size();
-        return base;
-    }
-    */
 
     private static Id getRt(String name) {
         return [
@@ -322,9 +316,24 @@ public with sharing class PolicyLifecycleService {
         // Calculate premium (you may want to apply the factors here)
         Decimal optCovFactor = hpFactor*usageFactor*experienceFactor;
         Decimal premium = basePremium + ((vehicleCurrentValue * totalBaseCov)*optCovFactor);
+
+        Map<Id, Decimal> coveragePremiums = new Map<Id, Decimal>();
+        for (Coverage_Definition__c cov : coverages) {
+            Decimal coverageBase = 0;
+            Decimal covPremium = 0;
+            if (cov.Base__c == null){
+                covPremium = basePremium;
+            } else {
+                coverageBase = cov.Base__c != null ? cov.Base__c : 0; // NULL SAFETY
+                covPremium = (vehicleCurrentValue * coverageBase)*optCovFactor;
+            }
+            coveragePremiums.put(cov.Id, covPremium);
+        }
+        dto.coveragePremiums = coveragePremiums;
+
         
         // Optional: Apply factors to premium
-        // premium = premium * hpFactor * usageFactor * experienceFactor;
+        
         
         System.debug('Premium calculation: base=' + basePremium + ', totalBaseCov=' + totalBaseCov + ', optCovFactor=' + optCovFactor + ', result=' + premium);
         
