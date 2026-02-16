@@ -26,6 +26,7 @@ export default class OnboardingNew extends LightningElement {
         driverFirstName: null,
         driverLastName: null,
         categoryLicense: null,
+        licenseIssuanceDate: null,
         vehicleId: null,
         vehiclePlate: null,
         vehicleIsNew: false,
@@ -225,6 +226,7 @@ export default class OnboardingNew extends LightningElement {
         addField('city', this.dto.city, 'string');
         addField('nationalId', this.dto.nationalId, 'string');
         addField('driverLicense', this.dto.driverLicense, 'string');
+        addField('licenseIssuanceDate', this.dto.licenseIssuanceDate, 'date');
         addField('email', this.dto.email, 'string');  // Add after driverLicense
         addField('businessName', this.dto.businessName, 'string');
         addField('registerOfCommerce', this.dto.registerOfCommerce, 'string');

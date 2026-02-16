@@ -20,7 +20,7 @@ public with sharing class PolicyLifecycleService {
         Savepoint sp = Database.setSavepoint();
         try{
 
-            Decimal premium = calculatePremium(dto.selectedCoverageIds);
+            Decimal premium = calculatePremium(dto);
             savePolicy(dto, premium);
             saveContract(dto, premium);
             
@@ -39,12 +39,13 @@ public with sharing class PolicyLifecycleService {
             throw new AuraHandledException(e.getMessage());
         }
     }
-
+    /*
     public static Decimal calculatePremium(List<Id> coverages) {
         Decimal base = 1000;
         if (coverages != null) base *= coverages.size();
         return base;
     }
+    */
 
     private static Id getRt(String name) {
         return [
@@ -92,6 +93,8 @@ public with sharing class PolicyLifecycleService {
         Contact con = new Contact(
             Id = personConId,
             Driver_License__c = dto.driverLicense,
+            license_issuance_date__c = dto.licenseIssuanceDate,
+            Category_License__c = dto.categoryLicense,
             Identity_Card__c  = dto.nationalId,
             City__c           = dto.city
         );
@@ -129,6 +132,7 @@ public with sharing class PolicyLifecycleService {
             Phone = dto.phoneNumber,
             Email = dto.email,
             Driver_License__c = dto.driverLicense,
+            license_issuance_date__c = dto.licenseIssuanceDate,
             Category_License__c = dto.categoryLicense,
             Birthdate = dto.birthDate,
             City__c = dto.city
@@ -181,7 +185,7 @@ public with sharing class PolicyLifecycleService {
             Account__c = dto.accId,
             Contact__c = dto.contactId,
             Vehicle__c = dto.vehicleId,
-            //Premium__c = premium,
+            Premium__c = premium,
             Policy__c  = dto.policyId,
             Status__c  = 'Draft'
         );
@@ -190,4 +194,140 @@ public with sharing class PolicyLifecycleService {
     }
 
 
+    // =============================
+    // PREMIUM CALCULATION
+    // =============================
+    private static Decimal getRC(Integer hp){
+        if(hp < 6){
+            hp = 6;
+        }
+        List<RC_base__mdt> rclist = [
+            SELECT Cheuveaux__c, Base__c FROM RC_base__mdt
+            WHERE Cheuveaux__c <= :hp
+            ORDER BY Cheuveaux__c DESC
+            LIMIT 1
+        ];
+        
+        if (rclist.isEmpty()) {
+            return 6; // or throw error
+        }
+        
+        return rclist[0].Base__c;
+    }
+
+    private static Decimal getDriverExperienceFactor(Integer yearsOfExperience){
+        List<Driver_Experience__mdt> factors = [
+            SELECT Years_of_experience__c, Factor__c
+            FROM Driver_Experience__mdt
+            WHERE Years_of_experience__c <= :yearsOfExperience
+            ORDER BY Years_of_experience__c DESC
+            LIMIT 1
+        ];
+
+        if (factors.isEmpty()) {
+            return 1; // default neutral factor
+        }
+
+        return factors[0].Factor__c;
+    }
+
+    public static Decimal getHpFactor(Integer hp) {
+        List<Coverage_Factor_hp__mdt> factors = [
+            SELECT hp__c, Factor__c
+            FROM Coverage_Factor_hp__mdt
+            WHERE hp__c <= :hp
+            ORDER BY hp__c DESC
+            LIMIT 1
+        ];
+
+        if (factors.isEmpty()) {
+            return 1; // neutral default
+        }
+
+        return factors[0].Factor__c;
+    }
+
+    public static Decimal getUsageFactor(String usage) {
+        List<Coverage_Factor_usage__mdt> factors = [
+            SELECT Usage__c, Factor__c
+            FROM Coverage_Factor_usage__mdt
+            WHERE Usage__c = :usage
+            LIMIT 1
+        ];
+
+        if (factors.isEmpty()) {
+            return 1; // neutral default
+        }
+
+        return factors[0].Factor__c;
+    }
+
+    public static Decimal calculatePremium(OnboardingDTO dto) {
+        // Declare variables
+        Integer hp;
+        String usage;
+        Integer yearsOfExperience;
+        Decimal vehicleCurrentValue;
+        
+        // Query vehicle data
+        List<Vehicle__c> vehicles = [
+            SELECT Fiscal_Horsepower__c, Vehicle_Usage__c, Current_Value__c 
+            FROM Vehicle__c 
+            WHERE Id = :dto.vehicleId
+            LIMIT 1
+        ];
+        
+        if (vehicles.isEmpty()) {
+            throw new AuraHandledException('Vehicle not found: ' + dto.vehicleId);
+        }
+        
+        Vehicle__c vehicle = vehicles[0];
+        hp = vehicle.Fiscal_Horsepower__c != null ? Integer.valueOf(vehicle.Fiscal_Horsepower__c) : 6;
+        usage = vehicle.Vehicle_Usage__c;
+        vehicleCurrentValue = vehicle.Current_Value__c != null ? vehicle.Current_Value__c : 0;
+        
+        // Query contact data
+        List<Contact> contacts = [
+            SELECT Years_of_experience__c 
+            FROM Contact 
+            WHERE Id = :dto.contactId
+            LIMIT 1
+        ];
+        
+        if (contacts.isEmpty()) {
+            throw new AuraHandledException('Contact not found: ' + dto.contactId);
+        }
+        
+        yearsOfExperience = contacts[0].Years_of_experience__c != null ? Integer.valueOf(contacts[0].Years_of_experience__c) : 6;
+        
+        // Calculate factors
+        Decimal basePremium = getRC(hp);
+        Decimal hpFactor = getHpFactor(hp);
+        Decimal usageFactor = getUsageFactor(usage);
+        Decimal experienceFactor = getDriverExperienceFactor(yearsOfExperience);
+        
+        // Query coverages
+        List<Coverage_Definition__c> coverages = [
+            SELECT Base__c
+            FROM Coverage_Definition__c
+            WHERE Id IN :dto.selectedCoverageIds
+        ];
+        
+        // Sum Base__c percentages
+        Decimal totalBaseCov = 0;
+        for (Coverage_Definition__c cov : coverages) {
+            totalBaseCov += cov.Base__c != null ? cov.Base__c : 0;
+        }
+        
+        // Calculate premium (you may want to apply the factors here)
+        Decimal optCovFactor = hpFactor*usageFactor*experienceFactor;
+        Decimal premium = basePremium + ((vehicleCurrentValue * totalBaseCov)*optCovFactor);
+        
+        // Optional: Apply factors to premium
+        // premium = premium * hpFactor * usageFactor * experienceFactor;
+        
+        System.debug('Premium calculation: base=' + basePremium + ', totalBaseCov=' + totalBaseCov + ', optCovFactor=' + optCovFactor + ', result=' + premium);
+        
+        return premium;
+    }
 }

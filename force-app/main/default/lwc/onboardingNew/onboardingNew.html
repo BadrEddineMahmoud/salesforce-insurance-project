@@ -30,6 +30,12 @@
                         <lightning-input name="driverLicense" label="Driver License" value={dto.driverLicense} onchange={handleInputChange}></lightning-input>
                     </div>
                     <div class="slds-col slds-size_1-of-2">
+                        <lightning-input type="date" name="licenseIssuanceDate" label="License Issuance Date" value={dto.licenseIssuanceDate} onchange={handleInputChange}></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-input name="categoryLicense" label="License Category" value={dto.categoryLicense} onchange={handleInputChange}></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
                         <lightning-input name="nationalId" label="National ID" value={dto.nationalId} onchange={handleInputChange}></lightning-input>
                     </div>
                     <div class="slds-col slds-size_1-of-2">
@@ -80,6 +86,9 @@
                 </div>
                 <div class="slds-col slds-size_1-of-2">
                     <lightning-input name="driverLicense" label="Driver License" value={dto.driverLicense} onchange={handleInputChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input type="date" name="licenseIssuanceDate" label="License Issuance Date" value={dto.licenseIssuanceDate} onchange={handleInputChange}></lightning-input>
                 </div>
                 <div class="slds-col slds-size_1-of-2">
                     <lightning-input name="nationalId" label="National ID" value={dto.nationalId} onchange={handleInputChange}></lightning-input>

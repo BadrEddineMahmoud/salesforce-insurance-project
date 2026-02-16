@@ -24,6 +24,7 @@ public class OnboardingDTO {
     @AuraEnabled public String driverFirstName;
     @AuraEnabled public String driverLastName;
     @AuraEnabled public String categoryLicense;
+    @AuraEnabled public Date licenseIssuanceDate;
 
     // =============================
     // STEP 2 – VEHICLE
