@@ -45,6 +45,8 @@ export default class OnboardingNew extends LightningElement {
         policyId: null,
         contractId: null,
         premium: null,
+        coveragePremiums: null,
+        coverageNames: null,
         selectedCoverageIds: []
     };
 
@@ -119,6 +121,29 @@ export default class OnboardingNew extends LightningElement {
             style: 'currency', 
             currency: 'MAD' 
         }).format(this.dto.vehicleValue);
+    }
+
+    get premiumFormatted() {
+        if (!this.dto.premium) return '-';
+        return new Intl.NumberFormat('en-US', { 
+            style: 'currency', 
+            currency: 'MAD' 
+        }).format(this.dto.premium);
+    }
+
+    get coveragePremiumsArray() {
+        if (!this.dto.coveragePremiums || !this.dto.coverageNames) return [];
+        
+        return Object.keys(this.dto.coveragePremiums).map(covId => {
+            return {
+                id: covId,
+                name: this.dto.coverageNames[covId] || 'Unknown Coverage',
+                premium: new Intl.NumberFormat('en-US', { 
+                    style: 'currency', 
+                    currency: 'MAD' 
+                }).format(this.dto.coveragePremiums[covId])
+            };
+        });
     }
 
     // Coverage options

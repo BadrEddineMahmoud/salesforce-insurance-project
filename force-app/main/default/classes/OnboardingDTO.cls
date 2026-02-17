@@ -52,6 +52,7 @@ public class OnboardingDTO {
     @AuraEnabled public Id contractId;
     @AuraEnabled public Decimal premium;
     @AuraEnabled public Map<Id, Decimal> coveragePremiums; 
+    @AuraEnabled public Map<String, String> coverageNames; // Optional: to display names in summary 
 
     // =============================
     // STEP 4 – COVERAGES

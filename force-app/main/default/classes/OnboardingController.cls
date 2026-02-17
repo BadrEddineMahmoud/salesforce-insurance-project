@@ -85,6 +85,7 @@ public with sharing class OnboardingController {
                     system.debug('Review step - no processing');
                 } else {
                     // For person: Step 4 is Coverages (no DML, just selection)
+                    PolicyLifecycleService.finalizeOnboarding(dto);
                     system.debug('Coverages step - selectedCoverageIds already populated');
                 }
             }
@@ -94,10 +95,11 @@ public with sharing class OnboardingController {
                 system.debug('step 5');
                 if (dto.clientType == 'BUSINESS') {
                     // For business: Step 5 is Coverages (no DML, just selection)
+                    PolicyLifecycleService.finalizeOnboarding(dto);
                     system.debug('Coverages step - selectedCoverageIds already populated');
                 } else {
                     // For person: Step 5 is Finalize
-                    PolicyLifecycleService.finalizeOnboarding(dto);
+                    PolicyLifecycleService.activateContract(dto);
                     system.debug('Finalized onboarding for person');
                 }
             }
@@ -107,7 +109,7 @@ public with sharing class OnboardingController {
                 system.debug('step 6');
                 if (dto.clientType == 'BUSINESS') {
                     // For business: Step 6 is Finalize
-                    PolicyLifecycleService.finalizeOnboarding(dto);
+                    PolicyLifecycleService.activateContract(dto);
                     system.debug('Finalized onboarding for business');
                 } else {
                     throw new AuraHandledException('Step 6 should not be reached for PERSON flow');

@@ -302,7 +302,7 @@ public with sharing class PolicyLifecycleService {
         
         // Query coverages
         List<Coverage_Definition__c> coverages = [
-            SELECT Base__c
+            SELECT Id, Name, Base__c
             FROM Coverage_Definition__c
             WHERE Id IN :dto.selectedCoverageIds
         ];
@@ -318,6 +318,7 @@ public with sharing class PolicyLifecycleService {
         Decimal premium = basePremium + ((vehicleCurrentValue * totalBaseCov)*optCovFactor);
 
         Map<Id, Decimal> coveragePremiums = new Map<Id, Decimal>();
+        Map<String, String> coverageNames = new Map<String, String>();
         for (Coverage_Definition__c cov : coverages) {
             Decimal coverageBase = 0;
             Decimal covPremium = 0;
@@ -328,8 +329,11 @@ public with sharing class PolicyLifecycleService {
                 covPremium = (vehicleCurrentValue * coverageBase)*optCovFactor;
             }
             coveragePremiums.put(cov.Id, covPremium);
+            coverageNames.put(String.valueOf(cov.Id), cov.Name);
         }
         dto.coveragePremiums = coveragePremiums;
+        dto.coverageNames = coverageNames;
+        dto.premium = premium;  
 
         
         // Optional: Apply factors to premium
@@ -338,5 +342,14 @@ public with sharing class PolicyLifecycleService {
         System.debug('Premium calculation: base=' + basePremium + ', totalBaseCov=' + totalBaseCov + ', optCovFactor=' + optCovFactor + ', result=' + premium);
         
         return premium;
+    }
+
+    public static void activateContract(OnboardingDTO dto) {
+        Inssurance_Contract__c contract = [SELECT Id, Status__c FROM Inssurance_Contract__c WHERE Id = :dto.contractId LIMIT 1];
+        if (contract == null) {
+            throw new AuraHandledException('Contract not found: ' + dto.contractId);
+        }
+        contract.Status__c = 'Active';
+        update contract;
     }
 }

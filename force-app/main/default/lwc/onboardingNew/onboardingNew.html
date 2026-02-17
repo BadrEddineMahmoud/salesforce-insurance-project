@@ -317,13 +317,84 @@
         </template>
 
         <!-- STEP: FINALIZE -->
+        <!-- STEP: FINALIZE (Payment Confirmation + Activation) -->
         <template if:true={isFinalizeStep}>
             <div class="slds-p-around_medium">
-                <p class="slds-text-heading_small">Finalize Onboarding</p>
-                <p class="slds-m-vertical_small">Apex will create/update Policy, Contract and Contract Coverages.</p>
+                <div class="slds-text-align_center slds-m-bottom_large">
+                    <h2 class="slds-text-heading_large">Payment Confirmation & Activation</h2>
+                    <p class="slds-text-color_weak">Review your premium and activate your insurance contract</p>
+                </div>
+
+                <!-- Premium Summary Box -->
+                <div class="slds-box slds-box_small slds-theme_shade slds-m-bottom_medium">
+                    <div class="slds-grid slds-grid_vertical-align-center">
+                        <div class="slds-col">
+                            <h3 class="slds-text-heading_medium">Total Premium</h3>
+                        </div>
+                        <div class="slds-col slds-text-align_right">
+                            <p class="slds-text-heading_large slds-text-color_success">{premiumFormatted}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coverage Breakdown Table -->
+                <div class="slds-box slds-m-bottom_medium">
+                    <h3 class="slds-text-heading_small slds-m-bottom_small">
+                        <lightning-icon icon-name="standard:recipe" size="small" class="slds-m-right_x-small"></lightning-icon>
+                        Coverage Breakdown
+                    </h3>
+                    
+                    <template if:true={coveragePremiumsArray}>
+                        <template if:true={coveragePremiumsArray.length}>
+                            <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                                <thead>
+                                    <tr class="slds-line-height_reset">
+                                        <th scope="col">
+                                            <div class="slds-truncate" title="Coverage">Coverage</div>
+                                        </th>
+                                        <th scope="col" class="slds-text-align_right">
+                                            <div class="slds-truncate" title="Premium">Premium</div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={coveragePremiumsArray} for:item="coverage">
+                                        <tr key={coverage.id} class="slds-hint-parent">
+                                            <td data-label="Coverage">
+                                                <div class="slds-truncate" title={coverage.name}>{coverage.name}</div>
+                                            </td>
+                                            <td data-label="Premium" class="slds-text-align_right">
+                                                <div class="slds-truncate" title={coverage.premium}>{coverage.premium}</div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <!-- Total Row -->
+                                    <tr class="slds-hint-parent slds-theme_shade">
+                                        <td data-label="Coverage">
+                                            <div class="slds-truncate"><strong>Total Premium</strong></div>
+                                        </td>
+                                        <td data-label="Premium" class="slds-text-align_right">
+                                            <div class="slds-truncate"><strong>{premiumFormatted}</strong></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </template>
+                        <template if:false={coveragePremiumsArray.length}>
+                            <p class="slds-text-color_weak">No coverage breakdown available</p>
+                        </template>
+                    </template>
+                </div>
+
+                <!-- Payment Terms & Activation Notice -->
+                <div class="slds-box slds-box_small slds-theme_warning slds-m-bottom_medium">
+                    <lightning-icon icon-name="utility:warning" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                    <strong>Important:</strong> By clicking "Confirm Payment & Activate", you agree to the insurance terms, authorize payment of the premium amount, and activate your insurance contract.
+                </div>
+
                 <div class="slds-m-top_medium">
                     <lightning-button variant="neutral" label="Back" onclick={handleBack} class="slds-m-right_small"></lightning-button>
-                    <lightning-button variant="brand" label="Save & Finish" onclick={handleNext}></lightning-button>
+                    <lightning-button variant="success" label="Confirm Payment & Activate" onclick={handleNext} icon-name="utility:check"></lightning-button>
                 </div>
             </div>
         </template>
