@@ -76,4 +76,7 @@ public class OnboardingDTO {
     }
 
     @AuraEnabled public String brokerName;
+    @AuraEnabled public String contractPeriod; // Period in months: 6, 12, 24
+    @AuraEnabled public Datetime contractStartDate;
+    @AuraEnabled public Datetime contractEndDate;
 }

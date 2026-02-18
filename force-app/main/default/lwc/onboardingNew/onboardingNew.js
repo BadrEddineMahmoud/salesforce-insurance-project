@@ -42,6 +42,7 @@ export default class OnboardingNew extends LightningElement {
         vehicleFuelType: null,
         vehicleTrailer: false,
         vehicleValue: null,
+        contractPeriod: '12', // Default to 12 months
         policyId: null,
         contractId: null,
         premium: null,
@@ -105,6 +106,13 @@ export default class OnboardingNew extends LightningElement {
         { label: 'Business', value: 'BUSINESS' }
     ];
 
+    // Add after clientTypeOptions
+    periodOptions = [
+        { label: '6 Months', value: '6' },
+        { label: '12 Months', value: '12' },
+        { label: '24 Months', value: '24' }
+    ];
+
     // Add these after your existing getters (around line 110)
 
     // Formatted values for review step
@@ -145,6 +153,36 @@ export default class OnboardingNew extends LightningElement {
                 }).format(this.dto.coveragePremiums[covId])
             };
         });
+    }
+
+    get contractStartDateFormatted() {
+        if (!this.dto.contractStartDate) return '-';
+        
+        // Convert ISO string to Date object if needed
+        const date = new Date(this.dto.contractStartDate);
+        
+        // Format as readable date/time
+        return new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
+    }
+
+    get contractEndDateFormatted() {
+        if (!this.dto.contractEndDate) return '-';
+        
+        const date = new Date(this.dto.contractEndDate);
+        
+        return new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
     }
 
     // Coverage options
@@ -212,6 +250,11 @@ export default class OnboardingNew extends LightningElement {
 
     handleCoveragesChange(event) {
         this.dto = { ...this.dto, selectedCoverageIds: event.detail.value || [] };
+    }
+
+    handlePeriodChange(event) {
+        this.dto = { ...this.dto, contractPeriod: event.detail.value };
+        console.log('[onboardingNew] Contract period changed to:', event.detail.value);
     }
 
     handleDownload() {
@@ -348,6 +391,7 @@ export default class OnboardingNew extends LightningElement {
         addField('premium', this.dto.premium, 'number');
         
         // COVERAGES
+        addField('contractPeriod', this.dto.contractPeriod, 'string');
         addField('selectedCoverageIds', this.dto.selectedCoverageIds, 'array');
 
         console.log('[onboardingNew] buildPayload returning:', JSON.stringify(payload));

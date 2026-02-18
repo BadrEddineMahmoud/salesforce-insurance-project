@@ -298,6 +298,17 @@
         <!-- STEP: COVERAGES -->
         <template if:true={isCoveragesStep}>
             <div class="slds-p-around_medium">
+                <!-- Contract Period Selection -->
+            <div class="slds-m-bottom_medium">
+                <lightning-radio-group
+                    name="contractPeriod"
+                    label="Contract Period"
+                    options={periodOptions}
+                    value={dto.contractPeriod}
+                    onchange={handlePeriodChange}
+                    required>
+                </lightning-radio-group>
+            </div>
                 <lightning-dual-listbox
                     name="coverages"
                     label="Select Coverages"
@@ -418,6 +429,16 @@
                         <p class="slds-text-heading_medium slds-m-top_small">Policy Number: {dto.policyName}</p>
                         <p class="slds-text-heading_medium slds-m-top_small">Contract Order Number: {dto.contractName}</p>
                     </div>
+                    <!-- Period -->
+                    <div class="slds-col slds-size_1-of-2 slds-p-bottom_x-small">
+                        <strong>Contract Period:</strong> {dto.contractPeriod} Months
+                    </div>
+                    <div class="slds-col slds-size_1-of-2 slds-p-bottom_x-small">
+                        <strong>Start Date:</strong> {contractStartDateFormatted}
+                    </div>
+                    <div class="slds-col slds-size_1-of-2 slds-p-bottom_x-small">
+                        <strong>End Date:</strong> {contractEndDateFormatted}
+                    </div>
 
                     <!-- Add after Account Information section -->
                     <div class="slds-m-bottom_large">
@@ -426,7 +447,7 @@
                         </h3>
                         <div class="slds-grid slds-wrap slds-gutters_small">
                             <div class="slds-col slds-size_1-of-1 slds-p-vertical_xx-small">
-                                <strong>Managed By(Broker):</strong> {dto.brokerName}
+                                <strong>Managed By:</strong> {dto.brokerName}
                             </div>
                         </div>
                     </div>

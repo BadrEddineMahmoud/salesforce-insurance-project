@@ -355,12 +355,88 @@ public with sharing class PolicyLifecycleService {
     }
 
     public static void activateContract(OnboardingDTO dto) {
-        Inssurance_Contract__c contract = [SELECT Id, Name, Status__c FROM Inssurance_Contract__c WHERE Id = :dto.contractId LIMIT 1];
-        if (contract == null) {
-            throw new AuraHandledException('Contract not found: ' + dto.contractId);
+        Savepoint sp = Database.setSavepoint();
+        try {
+            // Get current date/time
+            Datetime now = Datetime.now();
+            
+            // Calculate end date based on selected period
+            Integer months = dto.contractPeriod != null ? Integer.valueOf(dto.contractPeriod) : 12;
+            Datetime endDate = now.addMonths(months);
+            
+            System.debug('Contract period: ' + months + ' months');
+            System.debug('Start date: ' + now);
+            System.debug('End date: ' + endDate);
+            
+            
+            // 4. Activate Policy
+            List<Policy__c> policies = [
+                SELECT Id, Status__c, Start_Date__c
+                FROM Policy__c 
+                WHERE Id = :dto.policyId 
+                LIMIT 1
+            ];
+            
+            if (policies.isEmpty()) {
+                throw new AuraHandledException('Policy not found: ' + dto.policyId);
+            }
+            
+            Policy__c policy = policies[0];
+            policy.Status__c = 'Active';
+            policy.Start_Date__c = now;
+            update policy;
+            System.debug('Policy activated: ' + policy.Id);
+            
+            // 5. Activate Contract
+            List<Inssurance_Contract__c> contracts = [
+                SELECT Id, Status__c, Start_Date__c, Expiration_Date__c
+                FROM Inssurance_Contract__c 
+                WHERE Id = :dto.contractId 
+                LIMIT 1
+            ];
+            
+            if (contracts.isEmpty()) {
+                throw new AuraHandledException('Contract not found: ' + dto.contractId);
+            }
+            
+            Inssurance_Contract__c contract = contracts[0];
+            contract.Status__c = 'Active';
+            contract.Start_Date__c = now;
+            contract.Expiration_Date__c = endDate;  // Use calculated end date
+            update contract;
+            System.debug('Contract activated: ' + contract.Id + ' | Start: ' + now + ' | End: ' + endDate);
+            
+            // 6. Activate all Contract Coverages
+            List<Contract_Coverage__c> coverages = [
+                SELECT Id, Status__c, Start_Date__c, Expiration_Date__c
+                FROM Contract_Coverage__c
+                WHERE Inssurance_Contract__c = :dto.contractId
+            ];
+            
+            if (coverages.isEmpty()) {
+                System.debug('Warning: No contract coverages found for contract: ' + dto.contractId);
+            } else {
+                for (Contract_Coverage__c cc : coverages) {
+                    cc.Status__c = 'Active';
+                    cc.Start_Date__c = now;
+                    cc.Expiration_Date__c = endDate;  // Use calculated end date
+                }
+                update coverages;
+                System.debug('Activated ' + coverages.size() + ' contract coverages');
+            }
+            
+            // Store activation dates in DTO for display
+            dto.contractStartDate = now;
+            dto.contractEndDate = endDate;
+            
+            System.debug('All records activated successfully');
+            
+        } catch (Exception e) {
+            Database.rollback(sp);
+            System.debug('Error activating records: ' + e.getMessage());
+            System.debug('Stack trace: ' + e.getStackTraceString());
+            throw new AuraHandledException('Error activating records: ' + e.getMessage());
         }
-        contract.Status__c = 'Active';
-        update contract;
     }
 
     public static void populateDownloadDetails(OnboardingDTO dto) {
