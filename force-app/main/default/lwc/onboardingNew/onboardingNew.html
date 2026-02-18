@@ -399,6 +399,206 @@
             </div>
         </template>
 
+        <!-- STEP: DOWNLOAD -->
+        <template if:true={isDownloadStep}>
+            <div class="slds-p-around_medium">
+                <!-- Success Message -->
+                <div class="slds-text-align_center slds-m-bottom_large">
+                    <lightning-icon icon-name="action:approval" size="large" class="slds-icon-text-success"></lightning-icon>
+                    <h2 class="slds-text-heading_large slds-m-top_small">Insurance Policy Activated!</h2>
+                    <p class="slds-text-color_weak">Your policy has been successfully activated. Download your policy document below.</p>
+                </div>
+
+                <!-- Policy Summary for Download -->
+                <div class="slds-box slds-m-bottom_medium" id="policy-document">
+                    
+                    <!-- Header -->
+                    <div class="slds-text-align_center slds-m-bottom_large slds-p-bottom_medium" style="border-bottom: 2px solid #ccc;">
+                        <h1 class="slds-text-heading_large">Insurance Policy</h1>
+                        <p class="slds-text-heading_medium slds-m-top_small">Policy Number: {dto.policyName}</p>
+                        <p class="slds-text-heading_medium slds-m-top_small">Contract Order Number: {dto.contractName}</p>
+                    </div>
+
+                    <!-- Add after Account Information section -->
+                    <div class="slds-m-bottom_large">
+                        <h3 class="slds-text-heading_small slds-m-bottom_small" style="border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                            <strong>Broker Information</strong>
+                        </h3>
+                        <div class="slds-grid slds-wrap slds-gutters_small">
+                            <div class="slds-col slds-size_1-of-1 slds-p-vertical_xx-small">
+                                <strong>Managed By(Broker):</strong> {dto.brokerName}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Information -->
+                    <div class="slds-m-bottom_large">
+                        <h3 class="slds-text-heading_small slds-m-bottom_small" style="border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                            <strong>Account Information</strong>
+                        </h3>
+                        <div class="slds-grid slds-wrap slds-gutters_small">
+                            <template if:true={isPerson}>
+                                <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                    <strong>Name:</strong> {dto.firstName} {dto.lastName}
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                    <strong>Type:</strong> Person
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                    <strong>National ID:</strong> {dto.nationalId}
+                                </div>
+                            </template>
+                            <template if:true={isBusiness}>
+                                <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                    <strong>Business Name:</strong> {dto.businessName}
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                    <strong>Type:</strong> Business
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                    <strong>Register of Commerce:</strong> {dto.registerOfCommerce}
+                                </div>
+                            </template>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                <strong>City:</strong> {dto.city}
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                <strong>Phone:</strong> {dto.phoneNumber}
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                <strong>Email:</strong> {dto.email}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Driver Information (if Business) -->
+                    <template if:true={isBusiness}>
+                        <div class="slds-m-bottom_large">
+                            <h3 class="slds-text-heading_small slds-m-bottom_small" style="border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                                <strong>Driver Information</strong>
+                            </h3>
+                            <div class="slds-grid slds-wrap slds-gutters_small">
+                                <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                    <strong>Name:</strong> {dto.driverFirstName} {dto.driverLastName}
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                    <strong>Birth Date:</strong> {dto.birthDate}
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                    <strong>Driver License:</strong> {dto.driverLicense}
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                    <strong>License Category:</strong> {dto.categoryLicense}
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                    <strong>License Issuance Date:</strong> {dto.licenseIssuanceDate}
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Driver Info for Person -->
+                    <template if:true={isPerson}>
+                        <div class="slds-m-bottom_large">
+                            <h3 class="slds-text-heading_small slds-m-bottom_small" style="border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                                <strong>Driver Information</strong>
+                            </h3>
+                            <div class="slds-grid slds-wrap slds-gutters_small">
+                                <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                    <strong>Birth Date:</strong> {dto.birthDate}
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                    <strong>Driver License:</strong> {dto.driverLicense}
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                    <strong>License Issuance Date:</strong> {dto.licenseIssuanceDate}
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Vehicle Information -->
+                    <div class="slds-m-bottom_large">
+                        <h3 class="slds-text-heading_small slds-m-bottom_small" style="border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                            <strong>Vehicle Information</strong>
+                        </h3>
+                        <div class="slds-grid slds-wrap slds-gutters_small">
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                <strong>Plate Number:</strong> {dto.vehiclePlate}
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                <strong>Start Date of Circulation:</strong> {dto.vehicleStartDateOfCirculation}
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                <strong>Body Type:</strong> {dto.vehicleBodyType}
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                <strong>Number of Passengers:</strong> {dto.vehicleNumberOfPassengers}
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                <strong>Usage:</strong> {dto.vehicleUsage}
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                <strong>Fiscal Horsepower:</strong> {dto.vehicleFiscalHorsepower}
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                <strong>Make:</strong> {dto.vehicleMake}
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                <strong>Model:</strong> {dto.vehicleModel}
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                <strong>Fuel Type:</strong> {dto.vehicleFuelType}
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-vertical_xx-small">
+                                <strong>Trailer:</strong> {vehicleTrailerLabel}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coverage Details -->
+                    <div class="slds-m-bottom_large">
+                        <h3 class="slds-text-heading_small slds-m-bottom_small" style="border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                            <strong>Coverage Details</strong>
+                        </h3>
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Coverage Name</th>
+                                    <th scope="col" class="slds-text-align_right">Limit</th>
+                                    <th scope="col" class="slds-text-align_right">Premium</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={dto.coverageDetails} for:item="coverage">
+                                    <tr key={coverage.coverageName}>
+                                        <td>{coverage.coverageName}</td>
+                                        <td class="slds-text-align_right">{coverage.coverageLimit}</td>
+                                        <td class="slds-text-align_right">{coverage.coveragePremium}</td>
+                                    </tr>
+                                </template>
+                                <tr class="slds-theme_shade">
+                                    <td colspan="2"><strong>Total Premium</strong></td>
+                                    <td class="slds-text-align_right"><strong>{premiumFormatted}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="slds-text-align_center slds-m-top_large slds-p-top_medium" style="border-top: 2px solid #ccc;">
+                        <p class="slds-text-body_small">This policy is valid from the activation date and subject to the terms and conditions.</p>
+                    </div>
+                </div>
+
+                <!-- Download Button -->
+                <div class="slds-m-top_medium slds-text-align_center">
+                    <lightning-button variant="brand" label="Download Policy Document" onclick={handleDownload} icon-name="utility:download" class="slds-m-right_small"></lightning-button>
+                    <lightning-button variant="neutral" label="Done" onclick={handleDone}></lightning-button>
+                </div>
+            </div>
+        </template>
+
         <!-- ERROR -->
         <template if:true={errorMessage}>
             <div class="slds-text-color_error slds-p-around_small">

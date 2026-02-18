@@ -31,6 +31,8 @@ public with sharing class OnboardingController {
             // STEP 1 – CLIENT TYPE + ACCOUNT (Both PERSON and BUSINESS)
             when 1 {
                 system.debug('step 1 - Account');
+
+                PolicyLifecycleService.getParentAccount(dto);
                 if (String.isBlank(dto.clientType)) {
                     system.debug('Client type is null');
                     return dto;
@@ -86,6 +88,7 @@ public with sharing class OnboardingController {
                 } else {
                     // For person: Step 4 is Coverages (no DML, just selection)
                     PolicyLifecycleService.finalizeOnboarding(dto);
+                    PolicyLifecycleService.populateDownloadDetails(dto);
                     system.debug('Coverages step - selectedCoverageIds already populated');
                 }
             }
@@ -96,6 +99,7 @@ public with sharing class OnboardingController {
                 if (dto.clientType == 'BUSINESS') {
                     // For business: Step 5 is Coverages (no DML, just selection)
                     PolicyLifecycleService.finalizeOnboarding(dto);
+                    PolicyLifecycleService.populateDownloadDetails(dto);
                     system.debug('Coverages step - selectedCoverageIds already populated');
                 } else {
                     // For person: Step 5 is Finalize
@@ -110,9 +114,20 @@ public with sharing class OnboardingController {
                 if (dto.clientType == 'BUSINESS') {
                     // For business: Step 6 is Finalize
                     PolicyLifecycleService.activateContract(dto);
+                    //PolicyLifecycleService.populateDownloadDetails(dto);
                     system.debug('Finalized onboarding for business');
                 } else {
-                    throw new AuraHandledException('Step 6 should not be reached for PERSON flow');
+                    system.debug('Download step for PERSON');
+                }
+            }
+
+            // STEP 7 – DOWNLOAD (BUSINESS only)
+            when 7 {
+                system.debug('step 7');
+                if (dto.clientType == 'BUSINESS') {
+                    system.debug('Download step for BUSINESS');
+                } else {
+                    throw new AuraHandledException('Step 7 should not be reached for PERSON flow');
                 }
             }
 

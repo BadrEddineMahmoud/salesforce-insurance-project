@@ -56,8 +56,8 @@ export default class OnboardingNew extends LightningElement {
     // ---------- FLOW DEFINITION ----------
     // Define the flow for each client type
     FLOWS = {
-        PERSON: ['ACCOUNT', 'VEHICLE', 'REVIEW', 'COVERAGES', 'FINALIZE'],
-        BUSINESS: ['ACCOUNT', 'DRIVER', 'VEHICLE', 'REVIEW', 'COVERAGES', 'FINALIZE']
+        PERSON: ['ACCOUNT', 'VEHICLE', 'REVIEW', 'COVERAGES', 'FINALIZE', 'DOWNLOAD'],
+        BUSINESS: ['ACCOUNT', 'DRIVER', 'VEHICLE', 'REVIEW', 'COVERAGES', 'FINALIZE', 'DOWNLOAD']
     };
 
     // Map step names to Apex step numbers
@@ -94,6 +94,7 @@ export default class OnboardingNew extends LightningElement {
     get isReviewStep() { return this.currentStepName === 'REVIEW'; }
     get isCoveragesStep() { return this.currentStepName === 'COVERAGES'; }
     get isFinalizeStep() { return this.currentStepName === 'FINALIZE'; }
+    get isDownloadStep() { return this.currentStepName === 'DOWNLOAD'; }
 
     // Client type helpers
     get isBusiness() { return this.dto.clientType === 'BUSINESS'; }
@@ -213,6 +214,47 @@ export default class OnboardingNew extends LightningElement {
         this.dto = { ...this.dto, selectedCoverageIds: event.detail.value || [] };
     }
 
+    handleDownload() {
+        // Get the policy document content
+        const element = this.template.querySelector('#policy-document');
+        if (!element) return;
+
+        // Create a printable version
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Policy ${this.dto.policyName}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; }
+                        h1 { text-align: center; }
+                        h3 { border-bottom: 2px solid #333; padding-bottom: 5px; margin-top: 20px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        table, th, td { border: 1px solid #ddd; }
+                        th, td { padding: 8px; text-align: left; }
+                        th { background-color: #f0f0f0; }
+                        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+                    </style>
+                </head>
+                <body>
+                    ${element.innerHTML}
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+    }
+
+    handleDone() {
+        // Navigate to home or show success message
+        // For now, just show a message
+        this.errorMessage = null;
+        console.log('Policy onboarding completed successfully');
+        
+        // Optionally: navigate to the policy record
+        // Or reset the form for a new onboarding
+    }
+
     // ---------- APEX STEP NUMBER MAPPING ----------
     getApexStepNumber() {
         // Map named step to Apex step number based on client type
@@ -229,6 +271,9 @@ export default class OnboardingNew extends LightningElement {
         }
         if (this.currentStepName === 'FINALIZE') {
             return this.dto.clientType === 'PERSON' ? 5 : 6;
+        }
+        if (this.currentStepName === 'DOWNLOAD') {
+            return this.dto.clientType === 'PERSON' ? 6 : 7;
         }
         return 1;
     }

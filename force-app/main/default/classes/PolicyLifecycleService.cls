@@ -70,6 +70,10 @@ public with sharing class PolicyLifecycleService {
         if (dto.accId != null) {
             acc.Id = dto.accId;
         }
+        // Only set ParentId if broker exists
+        if (dto.brokerAccountId != null) {
+            acc.Broker__c = dto.brokerAccountId;
+        }
 
         try {
             upsert acc;
@@ -101,15 +105,21 @@ public with sharing class PolicyLifecycleService {
     // upsert business account
     public static OnboardingDTO saveBusinessAccount(OnboardingDTO dto){
         Account acc = new Account(
-            Id = dto.accId,
             RecordTypeId = getRt('Business Client'),
             Name = dto.businessName,
             Register_of_Commerce__c = dto.registerOfCommerce,
             //City__c = dto.city,
             Phone = dto.phoneNumber,
             Status__c = 'Draft'
-            //ParentId = dto.brokerAccountId
             );
+
+        if (dto.accId != null) {
+            acc.Id = dto.accId;
+        }
+        // Only set ParentId if broker exists
+        if (dto.brokerAccountId != null) {
+            acc.Broker__c = dto.brokerAccountId;
+        }
         upsert acc;
         dto.accId = acc.Id;
         System.debug('Saved business account with ID: ' + acc.Id);
@@ -345,11 +355,77 @@ public with sharing class PolicyLifecycleService {
     }
 
     public static void activateContract(OnboardingDTO dto) {
-        Inssurance_Contract__c contract = [SELECT Id, Status__c FROM Inssurance_Contract__c WHERE Id = :dto.contractId LIMIT 1];
+        Inssurance_Contract__c contract = [SELECT Id, Name, Status__c FROM Inssurance_Contract__c WHERE Id = :dto.contractId LIMIT 1];
         if (contract == null) {
             throw new AuraHandledException('Contract not found: ' + dto.contractId);
         }
         contract.Status__c = 'Active';
         update contract;
+    }
+
+    public static void populateDownloadDetails(OnboardingDTO dto) {
+        // Get Policy Name
+        Policy__c policy = [SELECT Name FROM Policy__c WHERE Id = :dto.policyId LIMIT 1];
+        dto.policyName = policy.Name;
+
+        // Get Contract Name
+        Inssurance_Contract__c contract = [SELECT Name FROM Inssurance_Contract__c WHERE Id = :dto.contractId LIMIT 1];
+        dto.contractName = contract.Name;
+
+        // Get Coverage Details with Limits
+        List<Contract_Coverage__c> contractCoverages = [
+            SELECT Id, Coverage_Definition__c, Coverage_Definition__r.Name, 
+                Coverage_Definition__r.Limite__c, Premium_ht__c
+            FROM Contract_Coverage__c
+            WHERE Inssurance_Contract__c = :dto.contractId
+        ];
+        
+        dto.coverageDetails = new List<OnboardingDTO.CoverageDetail>();
+        for (Contract_Coverage__c cc : contractCoverages) {
+            OnboardingDTO.CoverageDetail detail = new OnboardingDTO.CoverageDetail();
+            detail.coverageName = cc.Coverage_Definition__r.Name;
+            detail.coverageLimit = cc.Coverage_Definition__r.Limite__c;
+            detail.coveragePremium = cc.Premium_ht__c;
+            dto.coverageDetails.add(detail);
+        }
+        
+        System.debug('Populated download details for policy: ' + dto.policyName);
+    }
+
+    public static void getParentAccount(OnboardingDTO dto) {
+        // Get current user with account info
+        List<User> users = [
+            SELECT AccountId, Account.RecordType.Name, Account.Name
+            FROM User 
+            WHERE Id = :UserInfo.getUserId()
+            LIMIT 1
+        ];
+        
+        if (users.isEmpty()) {
+            throw new AuraHandledException('User not found');
+        }
+        
+        User currentUser = users[0];
+        
+        // Check if user has an associated account
+        if (currentUser.AccountId == null) {
+            // Internal user (not associated with any account)
+            dto.brokerAccountId = null;
+            dto.brokerName = 'Intern';
+            System.debug('Internal user - no broker account');
+            return;
+        }
+        
+        // Check if account is a Broker
+        if (currentUser.Account.RecordType.Name == 'Broker') {
+            dto.brokerAccountId = currentUser.AccountId;
+            dto.brokerName = currentUser.Account.Name;
+            System.debug('Broker account: ' + dto.brokerName);
+        } else {
+            // User has an account but it's not a Broker (e.g., other partner types)
+            dto.brokerAccountId = null;
+            dto.brokerName = 'Intern';
+            System.debug('Non-broker account - treating as Intern');
+        }
     }
 }

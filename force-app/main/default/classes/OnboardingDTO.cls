@@ -61,4 +61,19 @@ public class OnboardingDTO {
 
     // Optional: tracking
     @AuraEnabled public Integer currentStep;
+
+
+    // Policy/Contract details for download
+    @AuraEnabled public String policyName;
+    @AuraEnabled public String contractName;
+    @AuraEnabled public List<CoverageDetail> coverageDetails;
+
+    // Inner class for coverage details
+    public class CoverageDetail {
+        @AuraEnabled public String coverageName;
+        @AuraEnabled public Decimal coverageLimit;
+        @AuraEnabled public Decimal coveragePremium;
+    }
+
+    @AuraEnabled public String brokerName;
 }
