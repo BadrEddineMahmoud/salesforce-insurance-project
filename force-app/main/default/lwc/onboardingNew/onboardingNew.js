@@ -106,6 +106,53 @@ export default class OnboardingNew extends LightningElement {
         { label: 'Business', value: 'BUSINESS' }
     ];
 
+    categoryLicenseOptions = [
+        { label: 'A1', value: 'A1' },
+        { label: 'B', value: 'B' },
+        { label: 'C', value: 'C' },
+        { label: 'D', value: 'D' },
+        { label: 'EB', value: 'EB' },
+        { label: 'EC', value: 'EC' },
+        { label: 'ED', value: 'ED' }
+    ];
+
+    vehicleUsageOptions = [
+        { label: 'Tourisme', value: 'Tourisme' },
+        { label: 'Professional', value: 'Professional' }
+    ];
+
+    bodyTypeOptions = [
+        { label: 'Sedan', value: 'Sedan' },
+        { label: 'Hatchback', value: 'Hatchback' },
+        { label: 'Coupe', value: 'Coupe' },
+        { label: 'Convertible', value: 'Convertible' },
+        { label: 'SUV', value: 'SUV' },
+        { label: 'Pickup', value: 'Pickup' },
+        { label: 'Van', value: 'Van' },
+        { label: 'Minibus', value: 'Minibus' },
+        { label: 'Bus', value: 'Bus' },
+        { label: 'Truck', value: 'Truck' },
+        { label: 'Motorcycle', value: 'Motorcycle' },
+        { label: 'Scooter', value: 'Scooter' }
+    ];
+
+    fuelTypeOptions = [
+        { label: 'Essence', value: 'Essence' },
+        { label: 'Diesel', value: 'Diesel' },
+        { label: 'Electric', value: 'Electric' }
+    ];
+
+    makeOptions = [
+        { label: 'Toyota', value: 'Toyota' },
+        { label: 'Mercedes', value: 'Mercedes' },
+        { label: 'Dacia', value: 'Dacia' },
+        { label: 'Renault', value: 'Renault' },
+        { label: 'Volkswagen', value: 'Volkswagen' },
+        { label: 'BMW', value: 'BMW' },
+        { label: 'Audi', value: 'Audi' },
+        { label: 'Tesla', value: 'Tesla' }
+    ];
+
     // Add after clientTypeOptions
     periodOptions = [
         { label: '6 Months', value: '6' },
